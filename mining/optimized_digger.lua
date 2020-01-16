@@ -6,9 +6,9 @@ discordWebHookUrl = ""
 -- https://computercraft-turtle-orchestrator.yourdomain.ltd/
 orchestratorUrl = ""
 
---===================== NOTE =====================--
--- THESE VARIABLES CAN BE EDITED AT YOUR OWNRISKS --
---================================================--
+--===================== NOTE ======================--
+-- THESE VARIABLES CAN BE EDITED AT YOUR OWN RISKS --
+--=================================================--
 outputChestFile = "outputChest"
 outputChestPosition = 16
 fuelChestFile = "fuelChest"

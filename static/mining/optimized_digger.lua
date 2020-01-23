@@ -5,6 +5,8 @@
 discordWebHookUrl = ""
 -- https://computercraft-turtle-orchestrator.yourdomain.ltd/
 orchestratorUrl = ""
+headers = {}
+ignoredBlocks = {}
 
 --===================== NOTE ======================--
 -- THESE VARIABLES CAN BE EDITED AT YOUR OWN RISKS --
@@ -19,6 +21,7 @@ dropErrorSleepTime = 300
 status = ""
 outputChestFile = "outputChest"
 refuelChestFile = "refuelChest"
+ssoTokenFile = "ssoToken"
 statusFile = "status"
 remainingForwardMovesFile = "remainingForwardMoves"
 initFile = "init"
@@ -31,6 +34,14 @@ deepnessFile = "deepness"
 --===== SECTION =====--
 --        WEB        --
 --===================--
+function initSSO()
+  if fs.exists(ssoTokenFile) then
+    local ssoTokenFd = fs.open(ssoTokenFile)
+    headers["Cookie"] = "sso_token="..ssoTokenFd.readLine()
+    ssoTokenFd.close()
+  end
+end
+
 -- Send a request to a Discord webhook
 function sendDiscordWebHook(alertString)
   http.post(discordWebHookUrl, "content="..alertString)
@@ -170,6 +181,32 @@ end
 --===== SECTION =====--
 --      MINING       --
 --===================--
+-- Tells if a block is ignored
+function isIgnoredBlock(block)
+  local blockString = block.name..tostring(block.metadata)
+  return not (ignoredBlocks[blockString] == true)
+end
+
+-- Get ignored blocks from API
+function fetchIgnoredBlocks()
+  if orchestratorUrl == "" then
+    print("No orchestrator URL set, skipping fetchIgnoredBlocks")
+    return
+  end
+  if groupUuid == "" then
+    print("No group uuid set, skipping fetchIgnoredBlocks")
+    return
+  end
+  local ignoredFs = http.get(orchestratorUrl.."/group/"..groupUuid.."/ignored")
+  local ignoredString = ignoredFs.readAll()
+  ignoredFs.close()
+
+  for ignoredBlock in string.gmatch(ignoredString, "(%w+),") do
+    print("Ignoring block "..ignoredBlock)
+    ignoredBlocks[ignoredBlock] = true
+  end
+end
+
 -- Dig down until bedrock, check if side blocks should be mined
 function dig()
   -- TODO
@@ -191,6 +228,8 @@ end
 
 -- Update program and init everything
 function init()
+  initSSO()
+  fetchIgnoredBlocks()
   update()
   if not fs.exists(initFile) then
     -- TODO Init goes here

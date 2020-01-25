@@ -1,5 +1,6 @@
 const { upperFirst } = require('lodash')
 const { logger, sleep, usleep, array } = require('../utils')
+const pkg = require('../package.json')
 
 class App {
   /**
@@ -14,6 +15,7 @@ class App {
     this.usleep = usleep
     this.sleep = sleep
     this.arrayUtils = array
+    this.pkg = pkg
 
     this.services = []
     const services = Object.keys(config.services)

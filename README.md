@@ -25,3 +25,11 @@ I'm lazy and don't want to learn RedNet, so orchestrating them externally sounde
 
 - Autonomous turtles (without orchestrator)
 - Chunk loading with turtle (should be done with FTBUtilities / self placed chunk loaders / anchors for now)
+
+## TODO
+
+### Secure group routes
+
+Check if turtle is in the group called
+
+### DB Migrate blacklist

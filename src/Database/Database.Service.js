@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-constructor */
 const Service = require('../Service')
 const { Client } = require('pg')
 const uuid = require('uuid/v4')
@@ -89,8 +88,29 @@ class DatabaseService extends Service {
       const { rows } = await this.client.query('SELECT * FROM public.turtle WHERE group_uuid = $1 AND current_action IS NOT NULL', [groupUuid])
       return rows
     } catch (err) {
-      this.logger.error(`Error getting active turtles for groupe ${groupUuid}: ${err.message || err}`)
-      throw new Error(`Error getting active turtles for groupe ${groupUuid}.`)
+      this.logger.error(`Error getting active turtles for group ${groupUuid}: ${err.message || err}`)
+      throw new Error(`Error getting active turtles for group ${groupUuid}.`)
+    }
+  }
+
+  /**
+   * Get a turtle
+   *
+   * @param {String} groupUuid - The uuid of the group
+   * @param {String} turtleUuid - The uuid of the turtle
+   * @returns {Object} Turtle information
+   * @throws In case no turtle is found
+   */
+  async getTurtle (groupUuid, turtleUuid) {
+    this.logger.trace('DatabaseService.getTurtle')
+
+    try {
+      const { rows: [turtle] } = await this.client.query('SELECT * FROM public.turtle WHERE group_uuid = $1 AND uuid = $2', [groupUuid, turtleUuid])
+      assert(turtle, 'Turtle not found')
+      return turtle
+    } catch (err) {
+      this.logger.error(`Error getting turtle ${turtleUuid} in group ${groupUuid}: ${err.message || err}`)
+      throw new Error(`Error getting turtle ${turtleUuid} in group ${groupUuid}.`)
     }
   }
 
@@ -111,6 +131,56 @@ class DatabaseService extends Service {
       this.logger.error(`Error starting new action ${actionUuid} for group ${groupUuid}: ${err.message || err}`)
       throw new Error(`Error starting new action ${actionUuid} for group ${groupUuid}.`)
     }
+  }
+
+  /**
+   * Add a block to a group's blacklist
+   *
+   * @param {String} groupUuid - The uuid of the group
+   * @param {String} block - The name/metadata of the block to be blacklisted
+   * @returns - Database entry
+   */
+  async addToBlacklist (groupUuid, name) {
+    this.logger.trace('DatabaseService.addToBlacklist')
+
+    const blockUuid = uuid()
+    try {
+      const { rows: [result] } = await this.client.query('INSERT INTO public.blacklist(uuid, group_uuid, name) VALUES($1, $2, $3) RETURNING *', [blockUuid, groupUuid, name])
+      return result.uuid
+    } catch (err) {
+      this.logger.error(`Error adding block ${name} (${blockUuid}) to group ${groupUuid} blacklist: ${err.message || err}`)
+      throw new Error(`Error adding block ${name} (${blockUuid}) to group ${groupUuid} blacklist.`)
+    }
+  }
+
+  /**
+   * Get a group's blacklist
+   *
+   * @param {String} groupUuid - The uuid of the group
+   * @returns - Array of blacklisted blocks
+   */
+  async getBlacklist (groupUuid) {
+    this.logger.trace('DatabaseService.getBlacklist')
+
+    try {
+      const { rows } = await this.client.query('SELECT * FROM public.blacklist WHERE group_uuid = $1', [groupUuid])
+      return rows
+    } catch (err) {
+      this.logger.error(`Error getting blacklist for group ${groupUuid}: ${err.message || err}`)
+      throw new Error(`Error getting blacklist for group ${groupUuid}.`)
+    }
+  }
+
+  /**
+   * Delete a block from a group's blacklist
+   *
+   * @param {String} groupUuid - The uuid of the group
+   * @param {String} blockUuid - The uuid of the block
+   */
+  async deleteFromBlacklist (groupUuid, blockUuid) {
+    this.logger.trace('DatabaseService.deleteFromBlacklist')
+
+    // TODO: this 😂
   }
 }
 

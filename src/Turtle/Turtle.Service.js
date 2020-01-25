@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-constructor */
 const Service = require('../Service')
 const assert = require('assert')
 
@@ -20,7 +19,18 @@ class TurtleService extends Service {
   async createGroup () {
     this.logger.trace('TurtleService.createGroup')
 
-    return this.DatabaseService.createGroup()
+    const uuid = await this.DatabaseService.createGroup()
+    const token = await this.SsoService.createServiceUser({
+      email: `${this.config.emailPrefix}-${uuid}@${this.config.emailDomain}`,
+      password: this.config.sso.password,
+      disableLogin: true,
+      servicePermissions: {
+        group: {
+          [uuid]: true
+        }
+      }
+    })
+    return token
   }
 
   /**
@@ -50,8 +60,11 @@ class TurtleService extends Service {
 
     const { groupUuid, turtleUuid, oldJobUuid = null } = turtleInfo
 
-    assert(groupUuid, 'Must provide an turtleUuid')
-    assert(turtleUuid, 'Must provide an turtleUuid')
+    assert(groupUuid, 'Must provide a turtleUuid')
+    assert(turtleUuid, 'Must provide a turtleUuid')
+
+    // Ensure the turtle exists
+    await this.DatabaseService.getTurtle(groupUuid, turtleUuid)
 
     await this.DatabaseService.editTurtleAction(turtleUuid, null)
     const activeTurtles = await this.DatabaseService.getActiveTurtles(groupUuid)
@@ -69,6 +82,48 @@ class TurtleService extends Service {
     await this.DatabaseService.editTurtleAction(turtleUuid, newActionUuid)
 
     return newActionUuid
+  }
+
+  /**
+   * Add a block to a group's blacklist
+   *
+   * @param {String} groupUuid - The uuid of the group
+   * @param {String} block - The name/metadata of the block to be blacklisted
+   * @returns - Database entry
+   */
+  async addToBlacklist (groupUuid, block) {
+    this.logger.trace('TurtleService.addToBlacklist')
+
+    return this.DatabaseService.addToBlacklist(groupUuid, block)
+  }
+
+  /**
+   * Get a group's blacklist
+   *
+   * @param {String} groupUuid - The uuid of the group
+   * @returns - Array of blacklisted blocks
+   */
+  async getBlacklist (groupUuid) {
+    this.logger.trace('TurtleService.getBlacklist')
+
+    return this.DatabaseService.getBlacklist(groupUuid)
+  }
+
+  /**
+   * Delete a block from a group's blacklist
+   *
+   * @param {Object} blacklistInfo - Info of the blacklist entry
+   * @param {String} blacklistInfo.groupUuid - The uuid of the group
+   * @param {String} blacklistInfo.blockUuid - The uuid of the block
+   */
+  async deleteFromBlacklist (blacklistInfo = {}) {
+    this.logger.trace('TurtleService.deleteFromBlacklist')
+
+    const { groupUuid, blockUuid } = blacklistInfo
+    assert(groupUuid, 'Must provide a groupUuid')
+    assert(blockUuid, 'Must provide a blockUuid')
+
+    await this.DatabaseService.deleteFromBlacklist(groupUuid, blockUuid)
   }
 }
 

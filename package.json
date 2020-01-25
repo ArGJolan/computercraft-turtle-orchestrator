@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "watch": "nodemon index.js",
+    "db": "node scripts/db.js",
+    "db:reset": "node scripts/reset-db.js",
     "lint": "eslint ."
   },
   "repository": {
@@ -25,6 +27,8 @@
     "express": "^4.17.1",
     "lodash": "^4.17.11",
     "pg": "^7.17.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.5",
     "uuid": "^3.4.0"
   },
   "devDependencies": {

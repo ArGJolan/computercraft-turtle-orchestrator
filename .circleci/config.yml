@@ -1,0 +1,52 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: node:12.14.1-alpine
+    resource_class: small
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          docker_layer_caching: false
+
+      - run:
+          name: Install Docker
+          command: |
+            apk add curl git
+            curl -L -o /tmp/docker-$DOCKER_VERSION.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz
+            tar -xz -C /tmp -f /tmp/docker-$DOCKER_VERSION.tgz
+            mv /tmp/docker/* /usr/bin
+
+      - run:
+          name: Login to registry
+          command: |
+            docker login $REGISTRY_URL -u $REGISTRY_USER -p $REGISTRY_PASSWORD
+    
+      - run:
+          name: Docker Build & Tag & Push
+          command: |
+            LATEST_TAG=${REGISTRY_URL}/${CIRCLE_PROJECT_REPONAME}:latest
+            BUILD_TAG=${REGISTRY_URL}/${CIRCLE_PROJECT_REPONAME}:circle-$CIRCLE_BUILD_NUM
+            COMMIT_TAG=${REGISTRY_URL}/${CIRCLE_PROJECT_REPONAME}:$(git rev-parse --short HEAD)
+            BRANCH_TAG=${REGISTRY_URL}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}
+            docker build -t $LATEST_TAG .
+            docker tag $LATEST_TAG $BUILD_TAG
+            docker tag $LATEST_TAG $COMMIT_TAG
+            docker tag $LATEST_TAG $BRANCH_TAG
+            docker push $LATEST_TAG
+            docker push $BUILD_TAG
+            docker push $COMMIT_TAG
+            docker push $BRANCH_TAG
+
+workflows:
+  version: 2
+  gcr:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+                - develop

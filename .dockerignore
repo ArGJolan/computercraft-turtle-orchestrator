@@ -1,0 +1,13 @@
+.editorconfig
+.eslintrc.js
+.gitignore
+.git
+.nvmrc
+.nycrc
+README.md
+config/config.local.js
+.circleci
+node_modules
+.dockerignore
+.eslintignore
+Dockerfile

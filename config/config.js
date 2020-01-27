@@ -5,12 +5,12 @@ module.exports = {
       apiKey: ''
     },
     database: {
-      containerName: 'orchestrator-postgres',
+      containerName: 'turtle-postgres',
       user: 'postgres',
       password: 'postgres',
-      host: 'orchestrator-postgres',
+      host: 'turtle-postgres',
       port: 5432,
-      database: 'orchestrator'
+      database: 'turtle'
     },
     turtle: {
       sso: {

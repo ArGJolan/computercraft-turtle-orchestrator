@@ -3,6 +3,10 @@
 A web based ComputerCraft Turtle orchestrator.
 Used for mining, but I'll possibly work on more advanced features soon.
 
+## Requirements
+
+- Postgres
+
 ## ComputerCraft wiki
 
 [https://computercraft.info/](https://computercraft.info/)

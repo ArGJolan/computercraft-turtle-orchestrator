@@ -24,7 +24,7 @@ module.exports = {
       routes: {
         createGroup: {
           http: 'post',
-          path: '/group',
+          path: '/group/create',
           controller: 'Turtle',
           method: 'createGroup'
         },
